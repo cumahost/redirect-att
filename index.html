@@ -1,111 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Link Manager</title>
+    <title>Link Manager Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <!-- Login Section -->
+
+    <!-- LOGIN SCREEN -->
     <div id="loginSection" class="flex items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-lg shadow-md w-96">
-            <h1 class="text-2xl font-bold mb-6 text-center">Admin Login</h1>
-            <input type="text" id="user" placeholder="Username" class="w-full border p-2 mb-4 rounded">
-            <input type="password" id="pass" placeholder="Password" class="w-full border p-2 mb-6 rounded">
-            <button onclick="doLogin()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Login</button>
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
+            <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">Admin Login</h1>
+            <div class="space-y-4">
+                <input type="text" id="user" placeholder="Username" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="password" id="pass" placeholder="Password" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                <button onclick="doLogin()" id="btnLogin" class="w-full bg-blue-600 text-white font-bold p-3 rounded-lg hover:bg-blue-700 transition">Masuk</button>
+            </div>
         </div>
     </div>
 
-    <!-- Dashboard Section (Hidden by Default) -->
-    <div id="dashboardSection" class="hidden p-8 max-w-4xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">🔗 Link Manager</h1>
-            <button onclick="logout()" class="text-red-500 underline text-sm">Logout</button>
+    <!-- DASHBOARD SCREEN -->
+    <div id="dashboardSection" class="hidden p-6 max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 tracking-tight">🔗 Link Manager</h1>
+            <button onclick="logout()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-red-100 hover:text-red-600 transition">Logout</button>
         </div>
         
-        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-            <h2 class="text-xl font-semibold mb-4">Buat Link Baru</h2>
+        <!-- Form Add -->
+        <div class="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-200">
+            <h2 class="text-lg font-semibold mb-4 text-gray-700">Buat Shortlink Baru</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="text" id="slug" placeholder="Slug (misal: wa)" class="border p-2 rounded">
-                <input type="text" id="target" placeholder="URL Tujuan (https://...)" class="border p-2 rounded">
-                <button onclick="addLink()" id="btnSave" class="bg-blue-600 text-white px-4 py-2 rounded">Simpan Link</button>
+                <input type="text" id="slug" placeholder="Slug (misal: promo)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                <input type="text" id="target" placeholder="URL Tujuan (https://...)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                <button onclick="addLink()" id="btnSave" class="bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 shadow-md">Simpan Link</button>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Table -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
             <table class="w-full text-left">
                 <thead class="bg-gray-50 border-b">
-                    <tr><th class="p-4">Slug</th><th class="p-4">Target URL</th><th class="p-4 text-center">Klik</th></tr>
+                    <tr>
+                        <th class="p-4 text-sm font-semibold text-gray-600 uppercase">Slug</th>
+                        <th class="p-4 text-sm font-semibold text-gray-600 uppercase">URL Tujuan</th>
+                        <th class="p-4 text-sm font-semibold text-gray-600 uppercase text-center">Klik</th>
+                        <th class="p-4 text-sm font-semibold text-gray-600 uppercase">Tgl Dibuat</th>
+                    </tr>
                 </thead>
-                <tbody id="linkTable"></tbody>
+                <tbody id="linkTable" class="divide-y divide-gray-100">
+                    <!-- Data dari GAS -->
+                </tbody>
             </table>
         </div>
     </div>
 
     <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzTtlIgVrtOC3scamWagAhuIlngFznl2u15LvM0UqhxNv4vaHU9DJdRRJuFZQ3CzzbyMg/exec";
+        // GANTI INI DENGAN URL WEB APP GAS TERBARU ANDA
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwmgkd6jDAedYqCuEatSgBC0MSEqmY_XsdM56OkoTg3DRE5ZozVtBFtJTpR2nAqPK5nyg/exec";
 
-    async function doLogin() {
-        const user = document.getElementById('user').value;
-        const pass = document.getElementById('pass').value;
-        
-        try {
-            const res = await fetch(GAS_URL, {
-                method: "POST",
-                mode: "cors", // Pastikan CORS aktif
-                headers: { "Content-Type": "text/plain;charset=utf-8" }, // Gunakan text/plain untuk menghindari preflight yang rumit
-                body: JSON.stringify({ action: "login", user, pass })
-            });
-            const data = await res.json();
-            if(data.status === "success") {
-                localStorage.setItem("admin_token", data.token);
-                showDashboard();
-            } else { alert("Login Gagal: " + data.message); }
-        } catch (err) {
-            console.error(err);
-            alert("Terjadi kesalahan koneksi ke server.");
+        async function doLogin() {
+            const user = document.getElementById('user').value;
+            const pass = document.getElementById('pass').value;
+            const btn = document.getElementById('btnLogin');
+
+            if(!user || !pass) return alert("Isi Username dan Password!");
+            btn.innerText = "Mengecek...";
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "login", user, pass })
+                });
+                const result = await response.json();
+                
+                if(result.status === "success") {
+                    localStorage.setItem("admin_token", result.token);
+                    showDashboard();
+                } else {
+                    alert("Gagal: " + result.message);
+                }
+            } catch (error) {
+                alert("Koneksi Error/CORS. Pastikan Deploy sudah 'Anyone'.");
+            } finally {
+                btn.innerText = "Masuk";
+            }
         }
-    }
 
-    function showDashboard() {
-        if(!localStorage.getItem("admin_token")) return;
-        document.getElementById('loginSection').classList.add('hidden');
-        document.getElementById('dashboardSection').classList.remove('hidden');
-        loadLinks();
-    }
+        function showDashboard() {
+            if(!localStorage.getItem("admin_token")) return;
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            loadLinks();
+        }
 
-    async function loadLinks() {
-        const res = await fetch(`${GAS_URL}?action=read`);
-        const data = await res.json();
-        document.getElementById('linkTable').innerHTML = data.map(item => `
-            <tr class="border-b text-sm hover:bg-gray-50">
-                <td class="p-4 text-blue-600 font-mono">${item.slug}</td>
-                <td class="p-4 truncate max-w-xs">${item.target}</td>
-                <td class="p-4 text-center font-bold">${item.clicks}</td>
-            </tr>
-        `).join('');
-    }
+        async function loadLinks() {
+            try {
+                const res = await fetch(`${GAS_URL}?action=read`);
+                const data = await res.json();
+                const table = document.getElementById('linkTable');
+                table.innerHTML = data.map(item => `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-4 font-mono text-blue-600 text-sm">/${item.slug}</td>
+                        <td class="p-4 text-sm text-gray-600 truncate max-w-xs">${item.target}</td>
+                        <td class="p-4 text-center"><span class="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-xs font-bold">${item.clicks}</span></td>
+                        <td class="p-4 text-xs text-gray-400">${new Date(item.date).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error("Gagal load data"); }
+        }
 
-    async function addLink() {
-        const slug = document.getElementById('slug').value;
-        const target = document.getElementById('target').value;
-        if(!slug || !target) return alert("Isi semua data!");
+        async function addLink() {
+            const slug = document.getElementById('slug').value;
+            const target = document.getElementById('target').value;
+            const btn = document.getElementById('btnSave');
 
-        await fetch(GAS_URL, {
-            method: "POST",
-            mode: "cors",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "add", slug, target })
-        });
-        
-        document.getElementById('slug').value = "";
-        document.getElementById('target').value = "";
-        loadLinks();
-    }
+            if(!slug || !target) return alert("Lengkapi data!");
+            btn.innerText = "Menyimpan...";
 
-    function logout() { localStorage.clear(); location.reload(); }
-    window.onload = showDashboard;
-</script>
+            try {
+                await fetch(GAS_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "add", slug, target })
+                });
+                document.getElementById('slug').value = "";
+                document.getElementById('target').value = "";
+                loadLinks();
+            } catch (e) { alert("Gagal menyimpan."); }
+            finally { btn.innerText = "Simpan Link"; }
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        window.onload = showDashboard;
+    </script>
 </body>
 </html>
