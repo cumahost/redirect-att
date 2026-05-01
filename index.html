@@ -3,54 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Link Manager Dashboard</title>
+    <title>Admin Dashboard - Link Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">🔗 Link Manager</h1>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Login Section -->
+    <div id="loginSection" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-lg shadow-md w-96">
+            <h1 class="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+            <input type="text" id="user" placeholder="Username" class="w-full border p-2 mb-4 rounded">
+            <input type="password" id="pass" placeholder="Password" class="w-full border p-2 mb-6 rounded">
+            <button onclick="doLogin()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Login</button>
+        </div>
+    </div>
+
+    <!-- Dashboard Section (Hidden by Default) -->
+    <div id="dashboardSection" class="hidden p-8 max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">🔗 Link Manager</h1>
+            <button onclick="logout()" class="text-red-500 underline text-sm">Logout</button>
+        </div>
         
-        <!-- Form Tambah Link -->
         <div class="bg-white p-6 rounded-lg shadow-md mb-8">
             <h2 class="text-xl font-semibold mb-4">Buat Link Baru</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <input type="text" id="slug" placeholder="Slug (misal: wa)" class="border p-2 rounded">
                 <input type="text" id="target" placeholder="URL Tujuan (https://...)" class="border p-2 rounded">
-                <button onclick="addLink()" id="btnSave" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Simpan Link</button>
+                <button onclick="addLink()" id="btnSave" class="bg-blue-600 text-white px-4 py-2 rounded">Simpan Link</button>
             </div>
         </div>
 
-        <!-- Tabel Data -->
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left">
                 <thead class="bg-gray-50 border-b">
-                    <tr>
-                        <th class="p-4 font-semibold">Slug</th>
-                        <th class="p-4 font-semibold">Target URL</th>
-                        <th class="p-4 font-semibold text-center">Klik</th>
-                        <th class="p-4 font-semibold">Dibuat</th>
-                    </tr>
+                    <tr><th class="p-4">Slug</th><th class="p-4">Target URL</th><th class="p-4 text-center">Klik</th></tr>
                 </thead>
-                <tbody id="linkTable">
-                    <!-- Data dari GAS akan muncul di sini -->
-                </tbody>
+                <tbody id="linkTable"></tbody>
             </table>
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwVFp9D7a1LiWkx5ypl5mgWDFcrrer808_6Z0kE-z2f7FCSy0ieHIlTe5BW3HQVsaV7kg/exec"; // <--- GANTI INI
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwH35OCzdHv2OrWaCAFjscQEoaQAZYfRXzIcql7-qteN4igtgxsN8_z9C__Vb0DppC5CA/exec";
+
+        async function doLogin() {
+            const user = document.getElementById('user').value;
+            const pass = document.getElementById('pass').value;
+            const res = await fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "login", user, pass })
+            });
+            const data = await res.json();
+            if(data.status === "success") {
+                localStorage.setItem("admin_token", data.token);
+                showDashboard();
+            } else { alert("Login Gagal!"); }
+        }
+
+        function showDashboard() {
+            if(!localStorage.getItem("admin_token")) return;
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            loadLinks();
+        }
 
         async function loadLinks() {
             const res = await fetch(`${GAS_URL}?action=read`);
             const data = await res.json();
-            const table = document.getElementById('linkTable');
-            table.innerHTML = data.map(item => `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="p-4 font-mono text-blue-600">${item.slug}</td>
-                    <td class="p-4 text-sm text-gray-600 truncate max-w-xs">${item.target}</td>
+            document.getElementById('linkTable').innerHTML = data.map(item => `
+                <tr class="border-b text-sm">
+                    <td class="p-4 text-blue-600 font-mono">${item.slug}</td>
+                    <td class="p-4 truncate max-w-xs">${item.target}</td>
                     <td class="p-4 text-center font-bold">${item.clicks}</td>
-                    <td class="p-4 text-xs text-gray-400">${new Date(item.date).toLocaleDateString()}</td>
                 </tr>
             `).join('');
         }
@@ -58,22 +82,17 @@
         async function addLink() {
             const slug = document.getElementById('slug').value;
             const target = document.getElementById('target').value;
-            if(!slug || !target) return alert("Isi semua field!");
-
-            document.getElementById('btnSave').innerText = "Menyimpan...";
-            
             await fetch(GAS_URL, {
                 method: "POST",
-                body: JSON.stringify({ slug, target })
+                body: JSON.stringify({ action: "add", slug, target })
             });
-
             document.getElementById('slug').value = "";
             document.getElementById('target').value = "";
-            document.getElementById('btnSave').innerText = "Simpan Link";
             loadLinks();
         }
 
-        loadLinks();
+        function logout() { localStorage.clear(); location.reload(); }
+        window.onload = showDashboard;
     </script>
 </body>
 </html>
