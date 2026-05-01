@@ -44,55 +44,68 @@
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwH35OCzdHv2OrWaCAFjscQEoaQAZYfRXzIcql7-qteN4igtgxsN8_z9C__Vb0DppC5CA/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzTtlIgVrtOC3scamWagAhuIlngFznl2u15LvM0UqhxNv4vaHU9DJdRRJuFZQ3CzzbyMg/exec";
 
-        async function doLogin() {
-            const user = document.getElementById('user').value;
-            const pass = document.getElementById('pass').value;
+    async function doLogin() {
+        const user = document.getElementById('user').value;
+        const pass = document.getElementById('pass').value;
+        
+        try {
             const res = await fetch(GAS_URL, {
                 method: "POST",
+                mode: "cors", // Pastikan CORS aktif
+                headers: { "Content-Type": "text/plain;charset=utf-8" }, // Gunakan text/plain untuk menghindari preflight yang rumit
                 body: JSON.stringify({ action: "login", user, pass })
             });
             const data = await res.json();
             if(data.status === "success") {
                 localStorage.setItem("admin_token", data.token);
                 showDashboard();
-            } else { alert("Login Gagal!"); }
+            } else { alert("Login Gagal: " + data.message); }
+        } catch (err) {
+            console.error(err);
+            alert("Terjadi kesalahan koneksi ke server.");
         }
+    }
 
-        function showDashboard() {
-            if(!localStorage.getItem("admin_token")) return;
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('dashboardSection').classList.remove('hidden');
-            loadLinks();
-        }
+    function showDashboard() {
+        if(!localStorage.getItem("admin_token")) return;
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('dashboardSection').classList.remove('hidden');
+        loadLinks();
+    }
 
-        async function loadLinks() {
-            const res = await fetch(`${GAS_URL}?action=read`);
-            const data = await res.json();
-            document.getElementById('linkTable').innerHTML = data.map(item => `
-                <tr class="border-b text-sm">
-                    <td class="p-4 text-blue-600 font-mono">${item.slug}</td>
-                    <td class="p-4 truncate max-w-xs">${item.target}</td>
-                    <td class="p-4 text-center font-bold">${item.clicks}</td>
-                </tr>
-            `).join('');
-        }
+    async function loadLinks() {
+        const res = await fetch(`${GAS_URL}?action=read`);
+        const data = await res.json();
+        document.getElementById('linkTable').innerHTML = data.map(item => `
+            <tr class="border-b text-sm hover:bg-gray-50">
+                <td class="p-4 text-blue-600 font-mono">${item.slug}</td>
+                <td class="p-4 truncate max-w-xs">${item.target}</td>
+                <td class="p-4 text-center font-bold">${item.clicks}</td>
+            </tr>
+        `).join('');
+    }
 
-        async function addLink() {
-            const slug = document.getElementById('slug').value;
-            const target = document.getElementById('target').value;
-            await fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "add", slug, target })
-            });
-            document.getElementById('slug').value = "";
-            document.getElementById('target').value = "";
-            loadLinks();
-        }
+    async function addLink() {
+        const slug = document.getElementById('slug').value;
+        const target = document.getElementById('target').value;
+        if(!slug || !target) return alert("Isi semua data!");
 
-        function logout() { localStorage.clear(); location.reload(); }
-        window.onload = showDashboard;
-    </script>
+        await fetch(GAS_URL, {
+            method: "POST",
+            mode: "cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "add", slug, target })
+        });
+        
+        document.getElementById('slug').value = "";
+        document.getElementById('target').value = "";
+        loadLinks();
+    }
+
+    function logout() { localStorage.clear(); location.reload(); }
+    window.onload = showDashboard;
+</script>
 </body>
 </html>
