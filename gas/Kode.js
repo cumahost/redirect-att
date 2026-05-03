@@ -66,6 +66,25 @@ function doGet(e) {
     }
     return responseJSON(rows);
   }
+
+  // Convenience: allow login/add via GET query for non-browser testing (kept for compatibility).
+  if (action == "login" && e.parameter.user && e.parameter.pass) {
+    var creds = ss.getSheetByName("Creds").getDataRange().getValues();
+    if (e.parameter.user == creds[1][0] && e.parameter.pass == creds[1][1]) {
+      var token = Utilities.base64Encode(e.parameter.user + ":" + e.parameter.pass);
+      return responseJSON({ status: "success", token: token });
+    }
+    return responseJSON({ status: "error", message: "Wrong credentials" });
+  }
+
+  if (action == "add" && e.parameter.slug && e.parameter.target) {
+    var exists = false;
+    var arr = sheet.getDataRange().getValues();
+    for (var j = 1; j < arr.length; j++) { if (arr[j][0] == e.parameter.slug) { exists = true; break; } }
+    if (exists) return responseJSON({ status: "error", message: "Slug already exists" });
+    sheet.appendRow([e.parameter.slug, e.parameter.target, 0, new Date()]);
+    return responseJSON({ status: "success" });
+  }
   return responseJSON({status: "API Active"});
 }
 
