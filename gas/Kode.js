@@ -28,7 +28,7 @@ function responseJSON(data) {
 function responseRedirect(target) {
   var safe = String(target).replace(/"/g, '\\"');
   var html = '<!doctype html><html><head>'
-    + '<meta http-equiv="refresh" content="0;url=" + safe + '" />'
+    + '<meta http-equiv="refresh" content="0;url=' + safe + '"/>'
     + '<script>location.replace("' + safe + '");</script>'
     + '</head><body></body></html>';
   return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -78,7 +78,8 @@ function doPost(e) {
   if (params.action == "login") {
     var creds = ss.getSheetByName("Creds").getDataRange().getValues();
     if (params.user == creds[1][0] && params.pass == creds[1][1]) {
-      return responseJSON({ status: "success", token: btoa(params.user + ":" + params.pass) });
+      var token = Utilities.base64Encode(params.user + ":" + params.pass);
+      return responseJSON({ status: "success", token: token });
     }
     return responseJSON({ status: "error", message: "Wrong credentials" });
   }
