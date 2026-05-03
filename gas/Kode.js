@@ -25,6 +25,16 @@ function responseJSON(data) {
     .setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
+// Helper: return a small HTML page that immediately redirects the client.
+function responseRedirect(target) {
+  var safe = String(target).replace(/"/g, '\\"');
+  var html = '<!doctype html><html><head>'
+    + '<meta http-equiv="refresh" content="0;url=" + safe + '" />'
+    + '<script>location.replace("' + safe + '");</script>'
+    + '</head><body></body></html>';
+  return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
 // --- 3. HANDLER OPTIONS (Preflight) ---
 function doOptions(e) {
   return responseJSON({status: "success"});
@@ -42,10 +52,10 @@ function doGet(e) {
     for (var i = 1; i < data.length; i++) {
       if (data[i][0] == e.parameter.id) {
         sheet.getRange(i + 1, 3).setValue((data[i][2] || 0) + 1);
-        return ContentService.createTextOutput(data[i][1]);
+        return responseRedirect(data[i][1]);
       }
     }
-    return ContentService.createTextOutput("Error: Not Found");
+    return responseJSON({ status: "error", message: "Not Found" });
   }
 
   // Logika Read Data (?action=read)
@@ -77,6 +87,12 @@ function doPost(e) {
   // Logika Tambah Link
   if (params.action == "add") {
     var sheet = ss.getSheetByName("Links");
+    if (!params.slug || !params.target) return responseJSON({ status: "error", message: "Missing slug or target" });
+    // check uniqueness
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0] == params.slug) return responseJSON({ status: "error", message: "Slug already exists" });
+    }
     sheet.appendRow([params.slug, params.target, 0, new Date()]);
     return responseJSON({ status: "success" });
   }
