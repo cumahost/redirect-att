@@ -40,3 +40,27 @@ If you want, I can:
 Status:
 - Point 1 (improve frontend UI): Completed — see `index.html` update (admin SPA, routing `/admin`, login UX).
 
+Cloudflare Worker (scaffolded)
+- A Worker template has been added at `worker/index.js` that fetches mapping from the GAS `?action=read` endpoint and issues 302 redirects for matched slugs.
+- `wrangler.toml` has been added (set your `account_id` and optionally `routes` before publishing). The file includes `GAS_URL` pointing to the latest GAS deployment.
+
+Deploying the Worker
+1. Install wrangler and login:
+
+```bash
+npm install -g wrangler
+wrangler login
+```
+
+2. Edit `wrangler.toml`: set `account_id` and uncomment `routes` if you want to bind to `go.attawwabin.my.id/*`.
+
+3. Publish the worker:
+
+```bash
+wrangler publish
+```
+
+Notes about custom domain
+- To use a custom domain (`go.attawwabin.my.id`) point the DNS CNAME to `workers.dev` per Cloudflare docs and add a route in `wrangler.toml` or Cloudflare dashboard.
+
+

@@ -1,0 +1,12 @@
+name = "redirect-att-worker"
+type = "javascript"
+
+# Set your Cloudflare account id before publishing.
+# account_id = "your-account-id"
+
+# Optional: route(s) to bind this worker to a hostname. Example:
+# routes = ["go.attawwabin.my.id/*"]
+
+# Environment bindings
+[vars]
+GAS_URL = "https://script.google.com/macros/s/AKfycbySfbk6Nl48yuTvHbn5gfTeek_u4jSzJpiV7zxoSnhtrs0xmKpi3A4KZGF4z0sK8_GvPA/exec"
