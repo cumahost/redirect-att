@@ -1,12 +1,23 @@
 name = "redirect-att-worker"
-type = "javascript"
+
+# Wrangler v4 requires a compatibility_date and an entry-point for the worker
+compatibility_date = "2026-05-03"
+main = "worker/index.js"
 
 # Set your Cloudflare account id before publishing.
-# account_id = "your-account-id"
+account_id = "862bf583841d5ba9581379b41efdcc13"
 
 # Optional: route(s) to bind this worker to a hostname. Example:
-# routes = ["go.attawwabin.my.id/*"]
+# Add both the workers.dev testing hostname and your custom domain
+# Optional: route(s) to bind this worker to a hostname. Example:
+# Add both the workers.dev testing hostname and your custom domain
+routes = ["go.attawwabin.my.id/*"]
 
+# Note: adding routes failed because the zone is not present in this account.
+# To bind the custom domain, either:
+# 1) Add the domain's zone to this Cloudflare account, or
+# 2) Specify `zone_id = "<zone-id>"` in the routes entry when the zone exists,
+#    or add the route in the Cloudflare dashboard (Workers -> Routes).
 # Environment bindings
 [vars]
 GAS_URL = "https://script.google.com/macros/s/AKfycbySfbk6Nl48yuTvHbn5gfTeek_u4jSzJpiV7zxoSnhtrs0xmKpi3A4KZGF4z0sK8_GvPA/exec"

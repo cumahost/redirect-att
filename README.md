@@ -63,4 +63,15 @@ wrangler publish
 Notes about custom domain
 - To use a custom domain (`go.attawwabin.my.id`) point the DNS CNAME to `workers.dev` per Cloudflare docs and add a route in `wrangler.toml` or Cloudflare dashboard.
 
+Published Worker
+- Deployed preview URL: https://redirect-att-worker.kutaweb.workers.dev
+
+To bind your custom domain `go.attawwabin.my.id` to the Worker:
+
+- Ensure the domain's zone is added to the same Cloudflare account (DNS management).
+- Add a CNAME from `go.attawwabin.my.id` to `workers.dev` per Cloudflare docs.
+- Add a route for the domain either in `wrangler.toml` (routes) or in the Cloudflare dashboard's Workers -> Routes.
+
+If you want me to bind the custom domain now, I can attempt it — I will try and report back if Cloudflare account/zone are required.
+
 
