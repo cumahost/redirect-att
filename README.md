@@ -37,3 +37,6 @@ If you want, I can:
 - Replace the `REPLACE_WITH_YOUR_GAS_URL` placeholder automatically with your deployed URL.
 - Scaffold a Worker and `wrangler.toml` to serve redirects and/or connect to a custom domain.
 
+Status:
+- Point 1 (improve frontend UI): Completed — see `index.html` update (admin SPA, routing `/admin`, login UX).
+
