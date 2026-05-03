@@ -1,141 +1,194 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Link Manager Admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 min-h-screen">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Redirect-ATT — Admin</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-slate-50 min-h-screen text-slate-800">
+        <div class="container mx-auto p-6">
+            <header class="flex items-center justify-between mb-8">
+                <h1 class="text-2xl font-bold">Redirect-ATT</h1>
+                <nav class="text-sm text-slate-600">
+                    <a href="/" class="mr-4">Home</a>
+                    <a href="/admin" id="navAdmin">Admin</a>
+                </nav>
+            </header>
 
-    <!-- LOGIN SCREEN -->
-    <div id="loginSection" class="flex items-center justify-center min-h-screen">
-        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
-            <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">Admin Login</h1>
-            <div class="space-y-4">
-                <input type="text" id="user" placeholder="Username" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                <input type="password" id="pass" placeholder="Password" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                <button onclick="doLogin()" id="btnLogin" class="w-full bg-blue-600 text-white font-bold p-3 rounded-lg hover:bg-blue-700 transition">Masuk</button>
-            </div>
+            <main id="app">
+                <!-- Public landing -->
+                <section id="landing" class="prose max-w-none">
+                    <h2>Welcome</h2>
+                    <p>Simple shortlink manager — gunakan <a href="/admin">/admin</a> untuk masuk sebagai admin.</p>
+                </section>
+
+                <!-- Admin area (single-file SPA) -->
+                <section id="admin" class="hidden">
+                    <div id="authBox" class="max-w-lg mx-auto">
+                        <div id="loginSection" class="bg-white p-6 rounded-lg shadow mt-4">
+                            <h2 class="text-xl font-semibold mb-4">Admin Login</h2>
+                            <div class="space-y-3">
+                                <input id="user" placeholder="Username" class="w-full border p-2 rounded" />
+                                <input id="pass" type="password" placeholder="Password" class="w-full border p-2 rounded" />
+                                <div class="flex gap-3">
+                                    <button id="btnLogin" class="flex-1 bg-indigo-600 text-white py-2 rounded">Masuk</button>
+                                    <button id="btnTest" class="flex-1 border py-2 rounded">Cek koneksi</button>
+                                </div>
+                                <p id="loginMsg" class="text-sm text-rose-600"></p>
+                            </div>
+                        </div>
+
+                        <div id="dashboardSection" class="hidden mt-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">🔗 Link Manager</h3>
+                                <div>
+                                    <button id="logoutBtn" class="px-3 py-1 border rounded">Logout</button>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-4 rounded shadow mb-4">
+                                <h4 class="font-medium mb-2">Buat Shortlink</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                    <input id="slug" placeholder="Slug (tanpa /)" class="border p-2 rounded col-span-1" />
+                                    <input id="target" placeholder="https://example.com/.." class="border p-2 rounded col-span-1 md:col-span-2" />
+                                </div>
+                                <div class="mt-3 flex gap-2">
+                                    <button id="btnSave" class="bg-emerald-600 text-white px-4 py-2 rounded">Simpan</button>
+                                    <button id="btnClear" class="border px-4 py-2 rounded">Bersihkan</button>
+                                </div>
+                                <p id="saveMsg" class="text-sm mt-2"></p>
+                            </div>
+
+                            <div class="bg-white rounded shadow overflow-hidden">
+                                <table class="w-full text-left">
+                                    <thead class="bg-slate-50 text-slate-600 text-sm">
+                                        <tr>
+                                            <th class="p-3">Slug</th>
+                                            <th class="p-3">Target</th>
+                                            <th class="p-3 text-center">Clicks</th>
+                                            <th class="p-3">Created</th>
+                                            <th class="p-3">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="linkTable" class="divide-y"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
         </div>
-    </div>
 
-    <!-- DASHBOARD SCREEN -->
-    <div id="dashboardSection" class="hidden p-6 max-w-5xl mx-auto">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800 tracking-tight">🔗 Link Manager</h1>
-            <button onclick="logout()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-red-100 hover:text-red-600 transition">Logout</button>
-        </div>
-        
-        <!-- Form Add -->
-        <div class="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-200">
-            <h2 class="text-lg font-semibold mb-4 text-gray-700">Buat Shortlink Baru</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="text" id="slug" placeholder="Slug (misal: promo)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
-                <input type="text" id="target" placeholder="URL Tujuan (https://...)" class="border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
-                <button onclick="addLink()" id="btnSave" class="bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 shadow-md">Simpan Link</button>
-            </div>
-        </div>
+        <script>
+            // Ganti dengan URL Web App GAS Anda sebelum deploy
+            const GAS_URL = "REPLACE_WITH_YOUR_GAS_URL";
 
-        <!-- Table -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-            <table class="w-full text-left">
-                <thead class="bg-gray-50 border-b">
-                    <tr>
-                        <th class="p-4 text-sm font-semibold text-gray-600 uppercase">Slug</th>
-                        <th class="p-4 text-sm font-semibold text-gray-600 uppercase">URL Tujuan</th>
-                        <th class="p-4 text-sm font-semibold text-gray-600 uppercase text-center">Klik</th>
-                        <th class="p-4 text-sm font-semibold text-gray-600 uppercase">Tgl Dibuat</th>
-                    </tr>
-                </thead>
-                <tbody id="linkTable" class="divide-y divide-gray-100">
-                    <!-- Data dari GAS -->
-                </tbody>
-            </table>
-        </div>
-    </div>
+            // Helper UI
+            const $ = (id) => document.getElementById(id);
 
-    <script>
-        // GANTI INI DENGAN URL WEB APP GAS TERBARU ANDA
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzdod9kMCtl9X8veDzMkom1YmRLcnmWx3qXbtstEQ8-TS2oSVEhRIkXkqN1wiQzTeq7gA/exec";
-
-        async function doLogin() {
-            const user = document.getElementById('user').value;
-            const pass = document.getElementById('pass').value;
-            const btn = document.getElementById('btnLogin');
-
-            if(!user || !pass) return alert("Isi Username dan Password!");
-            btn.innerText = "Mengecek...";
-
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "login", user, pass })
-                });
-                const result = await response.json();
-                
-                if(result.status === "success") {
-                    localStorage.setItem("admin_token", result.token);
-                    showDashboard();
-                } else {
-                    alert("Gagal: " + result.message);
-                }
-            } catch (error) {
-                alert("Koneksi Error/CORS. Pastikan Deploy sudah 'Anyone'.");
-            } finally {
-                btn.innerText = "Masuk";
+            // Simple router: show admin when path contains /admin
+            function route() {
+                const isAdmin = location.pathname.includes("/admin") || location.hash === "#admin";
+                document.getElementById("admin").classList.toggle("hidden", !isAdmin);
+                document.getElementById("landing").classList.toggle("hidden", isAdmin);
+                if (isAdmin) initAdmin();
             }
-        }
 
-        function showDashboard() {
-            if(!localStorage.getItem("admin_token")) return;
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('dashboardSection').classList.remove('hidden');
-            loadLinks();
-        }
+            // Auth helpers
+            function setMsg(el, txt, color = "") {
+                el.textContent = txt;
+                el.className = el.className.split(" ").filter(Boolean).concat(color ? [color] : []).join(" ");
+            }
 
-        async function loadLinks() {
-            try {
-                const res = await fetch(`${GAS_URL}?action=read`);
-                const data = await res.json();
-                const table = document.getElementById('linkTable');
-                table.innerHTML = data.map(item => `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="p-4 font-mono text-blue-600 text-sm">/${item.slug}</td>
-                        <td class="p-4 text-sm text-gray-600 truncate max-w-xs">${item.target}</td>
-                        <td class="p-4 text-center"><span class="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-xs font-bold">${item.clicks}</span></td>
-                        <td class="p-4 text-xs text-gray-400">${new Date(item.date).toLocaleDateString()}</td>
-                    </tr>
-                `).join('');
-            } catch (e) { console.error("Gagal load data"); }
-        }
+            async function testConnection() {
+                try {
+                    const res = await fetch(GAS_URL + "?action=read");
+                    if (!res.ok) throw new Error(res.statusText);
+                    setMsg($('loginMsg'), 'Koneksi OK', 'text-emerald-600');
+                } catch (e) {
+                    setMsg($('loginMsg'), 'Gagal terhubung ke GAS. Periksa GAS_URL dan permission.', 'text-rose-600');
+                }
+            }
 
-        async function addLink() {
-            const slug = document.getElementById('slug').value;
-            const target = document.getElementById('target').value;
-            const btn = document.getElementById('btnSave');
+            async function doLogin() {
+                const user = $('user').value.trim();
+                const pass = $('pass').value.trim();
+                if (!user || !pass) return setMsg($('loginMsg'), 'Isi username & password', 'text-rose-600');
+                $('btnLogin').disabled = true; $('btnLogin').textContent = 'Memeriksa...';
+                try {
+                    const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', user, pass }) });
+                    const json = await res.json();
+                    if (json.status === 'success') {
+                        localStorage.setItem('admin_token', json.token);
+                        showDashboard();
+                    } else setMsg($('loginMsg'), json.message || 'Login gagal', 'text-rose-600');
+                } catch (e) {
+                    setMsg($('loginMsg'), 'Network/CORS error saat login', 'text-rose-600');
+                } finally { $('btnLogin').disabled = false; $('btnLogin').textContent = 'Masuk'; }
+            }
 
-            if(!slug || !target) return alert("Lengkapi data!");
-            btn.innerText = "Menyimpan...";
-
-            try {
-                await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "add", slug, target })
-                });
-                document.getElementById('slug').value = "";
-                document.getElementById('target').value = "";
+            function showDashboard() {
+                $('loginSection').classList.add('hidden');
+                $('dashboardSection').classList.remove('hidden');
                 loadLinks();
-            } catch (e) { alert("Gagal menyimpan."); }
-            finally { btn.innerText = "Simpan Link"; }
-        }
+            }
 
-        function logout() {
-            localStorage.clear();
-            location.reload();
-        }
+            async function loadLinks() {
+                const table = $('linkTable');
+                table.innerHTML = '<tr><td class="p-4">Memuat...</td></tr>';
+                try {
+                    const res = await fetch(GAS_URL + '?action=read');
+                    const data = await res.json();
+                    if (!Array.isArray(data)) throw new Error('Invalid data');
+                    table.innerHTML = data.map(item => `
+                        <tr>
+                            <td class="p-3 font-mono">/${item.slug}</td>
+                            <td class="p-3 truncate max-w-xs">${item.target}</td>
+                            <td class="p-3 text-center">${item.clicks || 0}</td>
+                            <td class="p-3 text-sm text-slate-500">${new Date(item.date).toLocaleString()}</td>
+                            <td class="p-3">
+                                <button class="copyBtn mr-2" data-slug="${item.slug}">Copy</button>
+                                <a class="text-indigo-600" href="${location.origin}/${item.slug}" target="_blank">Preview</a>
+                            </td>
+                        </tr>
+                    `).join('');
+                    document.querySelectorAll('.copyBtn').forEach(b => b.addEventListener('click', (e) => { navigator.clipboard.writeText(location.origin + '/' + e.target.dataset.slug); }));
+                } catch (e) { table.innerHTML = '<tr><td class="p-4 text-rose-600">Gagal load data</td></tr>'; }
+            }
 
-        window.onload = showDashboard;
-    </script>
-</body>
+            async function addLink() {
+                const slug = $('slug').value.trim();
+                const target = $('target').value.trim();
+                if (!slug || !target) return setMsg($('saveMsg'), 'Lengkapi slug dan target', 'text-rose-600');
+                $('btnSave').disabled = true; $('btnSave').textContent = 'Menyimpan...';
+                try {
+                    await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'add', slug, target }) });
+                    setMsg($('saveMsg'), 'Disimpan', 'text-emerald-600');
+                    $('slug').value = ''; $('target').value = '';
+                    loadLinks();
+                } catch (e) { setMsg($('saveMsg'), 'Gagal menyimpan', 'text-rose-600'); }
+                finally { $('btnSave').disabled = false; $('btnSave').textContent = 'Simpan'; }
+            }
+
+            function logout() { localStorage.removeItem('admin_token'); location.href = '/'; }
+
+            function initAdmin() {
+                // If already initialized, skip
+                if (initAdmin._done) return; initAdmin._done = true;
+                $('btnTest').addEventListener('click', testConnection);
+                $('btnLogin').addEventListener('click', doLogin);
+                $('btnSave').addEventListener('click', addLink);
+                $('btnClear').addEventListener('click', () => { $('slug').value=''; $('target').value=''; setMsg($('saveMsg'), '', ''); });
+                $('logoutBtn').addEventListener('click', logout);
+
+                // Auto-login if token present
+                if (localStorage.getItem('admin_token')) showDashboard();
+            }
+
+            // Kick router
+            route();
+            window.addEventListener('popstate', route);
+        </script>
+    </body>
 </html>
